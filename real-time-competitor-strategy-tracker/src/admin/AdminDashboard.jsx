@@ -9,20 +9,20 @@ export default function AdminDashboard() {
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-xl font-semibold mb-4">Competitor Pricing</h2>
-        <table className="w-full text-left">
+        <table className="w-full text-left border-collapse">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Competitor</th>
-              <th>Price</th>
+              <th className="border-b p-2">Product</th>
+              <th className="border-b p-2">Competitor</th>
+              <th className="border-b p-2">Price</th>
             </tr>
           </thead>
           <tbody>
             {dummyCompetitors.map((c, i) => (
               <tr key={i}>
-                <td>{c.product}</td>
-                <td>{c.competitor}</td>
-                <td>₹{c.price}</td>
+                <td className="p-2">{c.product}</td>
+                <td className="p-2">{c.competitor}</td>
+                <td className="p-2">₹{c.price}</td>
               </tr>
             ))}
           </tbody>

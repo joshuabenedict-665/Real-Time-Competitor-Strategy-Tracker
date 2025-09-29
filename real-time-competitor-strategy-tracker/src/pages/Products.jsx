@@ -3,6 +3,7 @@ import ProductCard from "../components/ProductCard";
 const dummyProducts = [
   { id: 1, name: "Sneakers", price: 2500, image: "/sneakers.jpg" },
   { id: 2, name: "Headphones", price: 4999, image: "/headphones.jpg" },
+  { id: 3, name: "Smartwatch", price: 6999, image: "/smartwatch.jpg" },
 ];
 
 export default function Products() {

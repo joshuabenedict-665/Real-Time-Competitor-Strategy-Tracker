@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🌟 Global Styles */
+body {
+  @apply bg-gray-50 text-gray-900 font-sans;
+  margin: 0;
+  padding: 0;
+}
+
+/* Buttons & Links Transitions */
+button, a {
+  @apply transition duration-300 ease-in-out;
+}
+
+/* Product Card Hover */
+.product-card {
+  @apply transform hover:scale-105 hover:shadow-xl;
+}
+
+/* Headings & Typography */
+h1, h2, h3 {
+  @apply font-bold;
+}
+h1 { @apply text-3xl md:text-4xl; }
+h2 { @apply text-2xl md:text-3xl; }
+p { @apply text-gray-700; }

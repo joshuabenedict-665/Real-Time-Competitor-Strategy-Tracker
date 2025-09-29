@@ -1,0 +1,4 @@
+/* Example: center everything */
+body {
+  @apply bg-gray-50 text-gray-900;
+}
