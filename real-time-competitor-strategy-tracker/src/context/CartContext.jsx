@@ -12,7 +12,6 @@ export const CartProvider = ({ children }) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
-        // Increase quantity if product already in cart
         return prev.map((item) =>
           item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
@@ -34,12 +33,17 @@ export const CartProvider = ({ children }) => {
     );
   };
 
+  // Clear cart (for checkout success)
+  const clearCart = () => setCartItems([]);
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity }}>
+    <CartContext.Provider
+      value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart }}
+    >
       {children}
     </CartContext.Provider>
   );
 };
 
-// Custom hook to use cart context
+// Custom hook
 export const useCart = () => useContext(CartContext);
