@@ -1,33 +1,16 @@
 /* App.css */
-
-/* Global body styling */
 body {
-  @apply bg-gray-50 text-gray-900 font-sans m-0 p-0;
+  @apply bg-gray-50 text-gray-900 font-sans antialiased;
 }
 
-/* Smooth transitions for buttons and links */
-button, a {
-  @apply transition duration-200 ease-in-out;
-}
-
-/* Product card hover effect (optional, complements ProductCard.jsx) */
 .product-card {
-  @apply transform hover:scale-105 hover:shadow-lg;
+  @apply transform transition-transform hover:-translate-y-1 hover:shadow-xl;
 }
 
-/* Headings and paragraphs */
+button, a {
+  @apply transition-all duration-300 ease-in-out;
+}
+
 h1, h2, h3 {
   @apply font-bold;
-}
-
-h1 {
-  @apply text-3xl md:text-4xl;
-}
-
-h2 {
-  @apply text-2xl md:text-3xl;
-}
-
-p {
-  @apply text-gray-700;
 }

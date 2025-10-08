@@ -5,24 +5,28 @@ const dummyCompetitors = [
 
 export default function AdminDashboard() {
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Competitor Pricing</h2>
-        <table className="w-full text-left border-collapse">
-          <thead>
+    <div className="min-h-screen bg-gray-50 p-10">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">Admin Dashboard</h1>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-700">Competitor Pricing</h2>
+        <table className="w-full border-collapse text-left overflow-hidden rounded-xl">
+          <thead className="bg-gradient-to-r from-orange-400 to-amber-500 text-white">
             <tr>
-              <th className="border-b p-2">Product</th>
-              <th className="border-b p-2">Competitor</th>
-              <th className="border-b p-2">Price</th>
+              <th className="p-3">Product</th>
+              <th className="p-3">Competitor</th>
+              <th className="p-3">Price</th>
             </tr>
           </thead>
           <tbody>
             {dummyCompetitors.map((c, i) => (
-              <tr key={i}>
-                <td className="p-2">{c.product}</td>
-                <td className="p-2">{c.competitor}</td>
-                <td className="p-2">₹{c.price}</td>
+              <tr
+                key={i}
+                className="border-b hover:bg-amber-50 transition"
+              >
+                <td className="p-3 font-medium">{c.product}</td>
+                <td className="p-3">{c.competitor}</td>
+                <td className="p-3 text-amber-600 font-semibold">₹{c.price}</td>
               </tr>
             ))}
           </tbody>
