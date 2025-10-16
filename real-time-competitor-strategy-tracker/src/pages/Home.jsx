@@ -1,16 +1,29 @@
+import React from "react";
 import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
-    <section className="flex flex-col items-center justify-center text-center p-20 bg-gradient-to-r from-indigo-500 to-purple-600 text-white min-h-screen">
-      <h2 className="text-5xl font-bold mb-4">Real-Time Competitor Strategy Tracker</h2>
-      <p className="text-lg mb-6">Smarter pricing, seamless shopping, powered by insights.</p>
-      <Link
-        to="/products"
-        className="mt-6 px-6 py-3 bg-white text-black rounded-lg shadow hover:scale-105 transition"
-      >
-        Explore Products
-      </Link>
-    </section>
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center text-center px-4">
+      <h1 className="text-4xl font-bold text-gray-800 mb-4">
+        Welcome to ShopSmart
+      </h1>
+      <p className="text-gray-600 max-w-lg mb-6">
+        Find your favorite products at the best prices. Shop smart, stay updated.
+      </p>
+      <div className="space-x-4">
+        <Link
+          to="/products"
+          className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg shadow transition"
+        >
+          Browse Products
+        </Link>
+        <Link
+          to="/admin/login"
+          className="border border-amber-500 text-amber-600 px-6 py-3 rounded-lg hover:bg-amber-50 transition"
+        >
+          Admin Login
+        </Link>
+      </div>
+    </div>
   );
 }
