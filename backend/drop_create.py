@@ -1,11 +1,19 @@
-# drop_create.py
-from database import engine, Base
-from models import MyProduct, CompetitorData
+from database import get_db
+import asyncio
 
-# Drop existing tables
-Base.metadata.drop_all(bind=engine)
+async def drop_and_create_collections():
+    db = get_db()
 
-# Create tables with new schema (including `image`)
-Base.metadata.create_all(bind=engine)
+    # Drop existing collections if they exist
+    collections = await db.list_collection_names()
+    for col in collections:
+        await db[col].drop()
+        print(f"Dropped collection: {col}")
 
-print("Tables recreated with `image` column!")
+    # Create empty collections
+    await db.create_collection("my_products")
+    await db.create_collection("competitor_data")
+    print("Recreated collections successfully!")
+
+if __name__ == "__main__":
+    asyncio.run(drop_and_create_collections())

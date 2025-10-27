@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import get_db
 from models import MyProduct, CompetitorData
-from datetime import datetime
 
 app = FastAPI(title="Real-Time Competitor Strategy Tracker API")
 
@@ -22,7 +21,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # --- Root Route ---
 @app.get("/")
 def root():
-    return {"message": "API is running!"}
+    return {"message": "MongoDB API is running successfully!"}
 
 # --- Get All Products ---
 @app.get("/products")
