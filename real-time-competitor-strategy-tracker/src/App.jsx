@@ -11,6 +11,9 @@ import Checkout from "./pages/Checkout";
 import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
 
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+
 function App() {
   return (
     <Router>
@@ -24,6 +27,10 @@ function App() {
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

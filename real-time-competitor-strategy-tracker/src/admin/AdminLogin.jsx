@@ -2,41 +2,45 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (username === "admin" && password === "admin") {
+    const res = await fetch("http://127.0.0.1:8000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, role: "admin" }),
+    });
+    const data = await res.json();
+
+    if (res.ok && data.role === "admin") {
+      localStorage.setItem("token", data.token);
       navigate("/admin/dashboard");
     } else {
-      alert("Invalid credentials");
+      setError(data.detail || "Access denied.");
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-orange-300 via-amber-200 to-yellow-100">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <form
         onSubmit={handleLogin}
-        className="bg-white shadow-2xl p-10 rounded-2xl w-96 border-t-4 border-orange-500"
+        className="bg-white p-8 shadow-lg rounded-xl w-96 space-y-4"
       >
-        <h2 className="text-3xl font-extrabold mb-8 text-center text-gray-800">
-          Admin Login
-        </h2>
+        <h1 className="text-2xl font-bold text-center mb-4">Admin Login</h1>
         <input
           type="text"
           placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full mb-4 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none"
+          className="w-full p-3 border rounded"
+          onChange={(e) => setForm({ ...form, username: e.target.value })}
         />
         <input
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-6 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 outline-none"
+          className="w-full p-3 border rounded"
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
         <button
           type="submit"
@@ -44,6 +48,7 @@ export default function AdminLogin() {
         >
           Login
         </button>
+        {error && <p className="text-red-500 text-center mt-2">{error}</p>}
       </form>
     </div>
   );
