@@ -1,13 +1,16 @@
+# main.py
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from database import get_db
 from auth import router as auth_router
-from auth_utils import verify_token  # ✅ NEW
+from auth_utils import verify_token, verify_admin_token
+from price_scraper import scrape_prices
+from price_predictor import run_model
+import asyncio
 
-app = FastAPI(title="Real-Time Competitor Strategy Tracker API")
+app = FastAPI(title="ShopSmart Competitor Tracker API")
 
-# --- ✅ CORS Setup ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -16,28 +19,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- ✅ Static Files ---
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# --- ✅ Include Authentication Routes ---
 app.include_router(auth_router)
 
-# --- ✅ Root Check Route ---
 @app.get("/")
 def root():
-    return {"message": "MongoDB API is running successfully!"}
+    return {"message": "API running"}
 
-# --- ✅ Protected: Get Products ---
 @app.get("/products")
 async def get_products(db=Depends(get_db), user=Depends(verify_token)):
     products = await db["my_products"].find().to_list(None)
     for p in products:
         p["_id"] = str(p["_id"])
-        if p.get("image"):
-            p["image"] = f"/static/{p['image'].lstrip('/')}"
     return {"user": user, "products": products}
 
-# --- ✅ Protected: Crawl Competitor Data ---
 @app.get("/crawl")
 async def crawl_competitors(db=Depends(get_db), user=Depends(verify_token)):
     competitors = await db["competitor_data"].find().to_list(None)
@@ -45,32 +40,34 @@ async def crawl_competitors(db=Depends(get_db), user=Depends(verify_token)):
         c["_id"] = str(c["_id"])
     return {"user": user, "competitors": competitors}
 
-# --- ✅ Public: Dummy Predict Route ---
-@app.get("/predict")
-def predict():
-    return {"prediction": "ML model not yet integrated"}
+@app.get("/admin/dashboard")
+async def admin_dashboard(db=Depends(get_db), admin=Depends(verify_admin_token)):
+    try:
+        # fetch product list from db (names)
+        products = await db["my_products"].find().to_list(None)
+        product_names = [p["name"] for p in products] if products else ["iPhone 15", "Samsung S24"]
 
-# --- ✅ Public: Dummy Sentiment Route ---
-@app.get("/sentiment")
-def sentiment():
-    return {"sentiment": "Sentiment model not yet integrated"}
+        scraped = scrape_prices(product_names)
+        preds = run_model(scraped)
 
-# --- ✅ Protected: Update My Prices ---
-@app.get("/my-prices/update")
-async def update_prices(db=Depends(get_db), user=Depends(verify_token)):
-    products = await db["my_products"].find().to_list(None)
-    competitors = await db["competitor_data"].find().to_list(None)
+        # combine into final list (merge by name)
+        merged = []
+        for s in scraped:
+            name = s["name"]
+            scraped_price = s.get("price")
+            pred_item = next((x for x in preds if x["name"] == name), {})
+            predicted_price = pred_item.get("predicted_price")
+            merged.append({
+                "name": name,
+                "scraped_price": scraped_price,
+                "predicted_price": predicted_price,
+                "sources": s.get("sources", {})
+            })
 
-    updated = []
-    for product in products:
-        comp_prices = [c["price"] for c in competitors if c["product_name"] == product["name"]]
-        if comp_prices:
-            min_price = min(comp_prices)
-            new_price = max(min_price - 5, 50)
-            await db["my_products"].update_one(
-                {"_id": product["_id"]},
-                {"$set": {"current_price": new_price}}
-            )
-            updated.append({"product": product["name"], "new_price": new_price})
+        # store snapshot to DB (async)
+        await db["price_snapshots"].insert_one({"timestamp": __import__("datetime").datetime.utcnow(), "data": merged})
 
-    return {"user": user, "updated_prices": updated}
+        return {"scraper_status": "success", "predicted_prices": merged, "scraped_prices": scraped}
+    except Exception as e:
+        print("ADMIN DASHBOARD ERROR:", e)
+        return {"scraper_status": "failed", "error": str(e)}
