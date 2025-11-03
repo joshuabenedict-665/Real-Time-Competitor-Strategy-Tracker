@@ -1,96 +1,48 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const AdminLogin = () => {
+export default function AdminLogin() {
+  const [form, setForm] = useState({ username: "", password: "" });
+  const [err, setErr] = useState("");
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
-
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrorMsg(""); // clear error on input
-  };
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
-
+    setErr("");
     try {
-      const res = await fetch("http://127.0.0.1:8000/auth/login", {
+      const res = await fetch("http://localhost:8000/auth/admin-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(form),
       });
-
-      const data = await res.json();
+      const json = await res.json();
       if (!res.ok) {
-        setErrorMsg(data.detail || "Login failed");
+        setErr(json.detail || "Admin login failed");
         return;
       }
-
-      // ✅ Check admin role
-      if (data.user.role !== "admin") {
-        setErrorMsg("Access denied! You are not an admin.");
-        return;
-      }
-
-      // ✅ Save session
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      // ✅ Redirect to Admin Dashboard
+      // store token + role
+      localStorage.setItem("token", json.access_token || json.access_token || json.access_token || json.get?.("access_token") || json.access_token || json.token || json.access_token || json.access_token);
+      // robust: prefer 'access_token' then 'token'
+      const tok = json.access_token || json.token;
+      localStorage.setItem("token", tok);
+      localStorage.setItem("role", "admin");
       navigate("/admin/dashboard");
-
-    } catch (error) {
-      setErrorMsg("Server error! Please try again.");
-      console.error("Login Error:", error);
+    } catch (err) {
+      setErr("Server error");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 mt-10">
-      <h2 className="text-2xl font-bold text-center mb-4">Admin Login</h2>
-
-      {errorMsg && (
-        <p className="bg-red-100 text-red-600 p-2 text-center rounded mb-3">
-          {errorMsg}
-        </p>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="username"
-          placeholder="Admin Username"
-          className="w-full border p-2 rounded"
-          value={formData.username}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          className="w-full border p-2 rounded"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
-        >
-          Login
-        </button>
+    <div className="p-6 max-w-md mx-auto">
+      <h2 className="text-2xl mb-4">Admin Login</h2>
+      {err && <div className="text-red-600 mb-3">{err}</div>}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input name="username" placeholder="username" value={form.username} onChange={handleChange} className="w-full p-2 border rounded" />
+        <input name="password" type="password" placeholder="password" value={form.password} onChange={handleChange} className="w-full p-2 border rounded" />
+        <button className="w-full bg-amber-500 text-white p-2 rounded">Login</button>
       </form>
     </div>
   );
-};
-
-export default AdminLogin;
+}

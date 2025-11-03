@@ -1,6 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard]
 motor
-pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+requests
+beautifulsoup4
+lxml
 python-multipart
-dnspython
+pydantic
