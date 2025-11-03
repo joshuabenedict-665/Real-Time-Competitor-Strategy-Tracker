@@ -10,6 +10,7 @@ import Checkout from "./pages/Checkout";
 
 import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
+import ProtectedAdminRoute from "./admin/ProtectedAdminRoute";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -21,20 +22,29 @@ function App() {
         <Navbar />
         <main className="flex-grow container mx-auto p-6">
           <Routes>
-            {/* Customer Routes */}
+
+            {/* ✅ Customer Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
 
-            {/* Auth Routes */}
+            {/* ✅ Authentication Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Admin Routes */}
+            {/* ✅ Admin Protected Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminDashboard />
+                </ProtectedAdminRoute>
+              }
+            />
+            
           </Routes>
         </main>
         <Footer />

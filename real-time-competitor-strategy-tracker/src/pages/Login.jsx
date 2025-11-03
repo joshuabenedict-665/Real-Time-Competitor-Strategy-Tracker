@@ -20,7 +20,8 @@ export default function Login() {
     if (res.ok) {
       setMsg("✅ Login successful!");
       localStorage.setItem("user", JSON.stringify(data.user));
-      setTimeout(() => navigate("/"), 1000);
+      setTimeout(() => navigate("/products"), 1000);
+
     } else {
       setMsg(data.detail || "Login failed");
     }

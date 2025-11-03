@@ -1,55 +1,96 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function AdminLogin() {
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
+const AdminLogin = () => {
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    const res = await fetch("http://127.0.0.1:8000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, role: "admin" }),
-    });
-    const data = await res.json();
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
 
-    if (res.ok && data.role === "admin") {
-      localStorage.setItem("token", data.token);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrorMsg(""); // clear error on input
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.detail || "Login failed");
+        return;
+      }
+
+      // ✅ Check admin role
+      if (data.user.role !== "admin") {
+        setErrorMsg("Access denied! You are not an admin.");
+        return;
+      }
+
+      // ✅ Save session
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      // ✅ Redirect to Admin Dashboard
       navigate("/admin/dashboard");
-    } else {
-      setError(data.detail || "Access denied.");
+
+    } catch (error) {
+      setErrorMsg("Server error! Please try again.");
+      console.error("Login Error:", error);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-8 shadow-lg rounded-xl w-96 space-y-4"
-      >
-        <h1 className="text-2xl font-bold text-center mb-4">Admin Login</h1>
+    <div className="max-w-md mx-auto bg-white shadow-lg rounded-lg p-6 mt-10">
+      <h2 className="text-2xl font-bold text-center mb-4">Admin Login</h2>
+
+      {errorMsg && (
+        <p className="bg-red-100 text-red-600 p-2 text-center rounded mb-3">
+          {errorMsg}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          placeholder="Username"
-          className="w-full p-3 border rounded"
-          onChange={(e) => setForm({ ...form, username: e.target.value })}
+          name="username"
+          placeholder="Admin Username"
+          className="w-full border p-2 rounded"
+          value={formData.username}
+          onChange={handleChange}
+          required
         />
+
         <input
           type="password"
+          name="password"
           placeholder="Password"
-          className="w-full p-3 border rounded"
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          className="w-full border p-2 rounded"
+          value={formData.password}
+          onChange={handleChange}
+          required
         />
+
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 shadow-md"
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
         >
           Login
         </button>
-        {error && <p className="text-red-500 text-center mt-2">{error}</p>}
       </form>
     </div>
   );
-}
+};
+
+export default AdminLogin;
