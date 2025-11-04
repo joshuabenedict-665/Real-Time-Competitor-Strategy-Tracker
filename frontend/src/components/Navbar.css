@@ -1,0 +1,28 @@
+.navbar {
+  background: #111827;
+  padding: 16px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar .logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.navbar ul {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.navbar ul li a {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.navbar ul li a:hover {
+  color: var(--accent-hover);
+}

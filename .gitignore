@@ -1,0 +1,95 @@
+############################
+# Frontend
+############################
+/node_modules
+/build
+/dist
+/.env.local
+/.env.development
+/.env.production
+/.env.test
+
+# React specific
+/.pnp
+.pnp.js
+.npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+############################
+# Backend - Python
+############################
+venv/
+env/
+ENV/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+instance/
+.pytest_cache/
+db.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+.Python
+*.log
+
+# FastAPI related cache & artifacts
+.cache/
+.mypy_cache/
+ruff_cache/
+pytest_cache/
+
+############################
+# Environment & Secrets
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# OS-specific
+############################
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+############################
+# VS Code & Editors
+############################
+.vscode/
+*.swp
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+############################
+# Playwright / Browser Automation
+############################
+/playwright-report/
+/test-results/
+/. playwright/
+/ms-playwright/
+
+############################
+# Misc
+############################
+*.tar.gz
+*.zip
+*.PID
+*.pid
+*.seed
+*.csv
+*.tmp

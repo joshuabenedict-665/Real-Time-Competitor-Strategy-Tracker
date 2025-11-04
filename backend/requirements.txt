@@ -3,8 +3,11 @@ uvicorn[standard]
 motor
 python-jose[cryptography]
 passlib[bcrypt]
-requests
+aiohttp
 beautifulsoup4
-lxml
+joblib
+scikit-learn
+pandas
+dnspython
 python-multipart
-pydantic
+python-dotenv

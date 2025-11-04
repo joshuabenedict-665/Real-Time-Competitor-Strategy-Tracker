@@ -1,68 +1,115 @@
-# price_scraper.py
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
-import random
-import time
+from datetime import datetime
+import re
+from typing import List, Dict
+import asyncio
 
-HEADERS = [
-    {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
-    {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"},
-    {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64)"}
-]
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-IN,en;q=0.9",
+}
 
-def _get(url, timeout=8):
+PRICE_RE = re.compile(r"[\d,]+(?:\.\d+)?")
+
+
+def _parse_price(text: str):
+    if not text:
+        return None
+    text = text.replace("₹", "").strip()
+    match = PRICE_RE.search(text)
+    if match:
+        return float(match.group(0).replace(",", ""))
+    return None
+
+
+async def fetch(session: aiohttp.ClientSession, url: str):
     try:
-        hdr = random.choice(HEADERS)
-        r = requests.get(url, headers=hdr, timeout=timeout)
-        if r.status_code == 200:
-            return r.text
-    except Exception:
-        return None
+        async with session.get(url, headers=HEADERS) as resp:
+            return await resp.text()
+    except:
+        return ""
 
-def scrape_amazon(product):
-    q = "+".join(product.split())
-    url = f"https://www.amazon.in/s?k={q}"
-    html = _get(url)
-    if not html:
-        return None
-    soup = BeautifulSoup(html, "lxml")
-    price_tag = soup.select_one("span.a-price-whole")
-    if price_tag:
-        text = price_tag.get_text(strip=True).replace(",", "")
-        try:
-            return int("".join(ch for ch in text if ch.isdigit()))
-        except:
-            return None
-    return None
 
-def scrape_flipkart(product):
-    q = "+".join(product.split())
+# ✅ Updated Flipkart selectors
+async def scrape_flipkart(query: str, limit: int = 8) -> List[Dict]:
+    q = query.replace(" ", "+")
     url = f"https://www.flipkart.com/search?q={q}"
-    html = _get(url)
-    if not html:
-        return None
-    soup = BeautifulSoup(html, "lxml")
-    price_tag = soup.select_one("div._30jeq3._1_WHN1")
-    if price_tag:
-        txt = price_tag.get_text(strip=True).replace("₹", "").replace(",", "")
-        try:
-            return int("".join(ch for ch in txt if ch.isdigit()))
-        except:
-            return None
-    return None
-
-def scrape_prices(product_names):
     results = []
-    for name in product_names:
-        # add small delay to be gentle
-        time.sleep(0.8)
-        prices = []
-        a = scrape_amazon(name)
-        if a: prices.append(a)
-        f = scrape_flipkart(name)
-        if f: prices.append(f)
-        if prices:
-            results.append({"name": name, "price": min(prices), "sources": {"amazon": a, "flipkart": f}})
-        else:
-            results.append({"name": name, "price": None, "sources": {"amazon": a, "flipkart": f}})
+
+    async with aiohttp.ClientSession() as session:
+        html = await fetch(session, url)
+
+    if not html:
+        return results
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    cards = soup.select("a._1fQZEK") or soup.select("a.s1Q9rs")
+
+    for card in cards[:limit]:
+        name = card.select_one("div._4rR01T, a.s1Q9rs")
+        price = card.select_one("div._30jeq3")
+        image = card.select_one("img")
+        link = card.get("href")
+
+        if not name or not price:
+            continue
+
+        results.append({
+            "name": name.get_text(strip=True),
+            "price": _parse_price(price.get_text()),
+            "competitor": "Flipkart",
+            "url": "https://www.flipkart.com" + link if link else None,
+            "image": image.get("src") or image.get("data-src") if image else None,
+            "last_updated": datetime.utcnow().isoformat()
+        })
+
     return results
+
+
+# ✅ Updated Amazon selectors
+async def scrape_amazon(query: str, limit: int = 8) -> List[Dict]:
+    q = query.replace(" ", "+")
+    url = f"https://www.amazon.in/s?k={q}"
+    results = []
+
+    async with aiohttp.ClientSession() as session:
+        html = await fetch(session, url)
+
+    if not html:
+        return results
+
+    soup = BeautifulSoup(html, "html.parser")
+
+    cards = soup.select("div.s-result-item")
+
+    for card in cards[:limit]:
+        title = card.select_one("span.a-size-medium, span.a-text-normal")
+        price_whole = card.select_one("span.a-price-whole")
+        image = card.select_one("img.s-image")
+        link = card.select_one("a.a-link-normal")
+
+        if not title or not price_whole:
+            continue
+
+        results.append({
+            "name": title.get_text(strip=True),
+            "price": _parse_price(price_whole.get_text()),
+            "competitor": "Amazon",
+            "url": "https://www.amazon.in" + link.get("href") if link else None,
+            "image": image.get("src") if image else None,
+            "last_updated": datetime.utcnow().isoformat()
+        })
+
+    return results
+
+
+async def scrape_all(query: str):
+    fk_task = scrape_flipkart(query)
+    amz_task = scrape_amazon(query)
+    fk, amz = await asyncio.gather(fk_task, amz_task)
+    return fk + amz
