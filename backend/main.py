@@ -1,3 +1,5 @@
+# main.py - UPDATED (Removed PATH_ROOT definition)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import connect_to_mongo, close_mongo_connection, db
@@ -5,10 +7,13 @@ from routes.auth import router as auth_router
 from routes.scrape import router as scrape_router
 from routes.products import router as products_router
 from routes.admin import router as admin_router
+from routes.admin_predictions import router as admin_predictions_router 
 from passlib.context import CryptContext
 import os
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Removed PATH_ROOT definition to fix circular import error.
 
 app = FastAPI(title="ShopSmart Competitor Tracker API")
 
@@ -25,6 +30,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(products_router)
 app.include_router(admin_router)
+app.include_router(admin_predictions_router)
 
 # ✅ Remove extra prefix — already defined in routes.scrape
 app.include_router(scrape_router)

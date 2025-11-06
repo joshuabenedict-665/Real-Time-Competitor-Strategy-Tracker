@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from bson import ObjectId
 from routes.auth import get_current_admin_user
 from database import get_db
-from price_predictor import predict_using_model
+from price_predictor import predict_using_model # Kept but may be unused if logic is in admin_predictions
 from datetime import datetime
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -56,29 +56,6 @@ async def get_scraped(db=Depends(get_db), admin=Depends(get_current_admin_user))
     return results  # ✅ frontend directly receives array
 
 
-@router.get("/predictions")
-async def admin_predictions(db=Depends(get_db), admin=Depends(get_current_admin_user)):
-    if db is None:
-        raise HTTPException(status_code=500, detail="DB not connected")
-
-    out = []
-    async for p in db["products"].find({"is_competitor": True}):
-        p = fix_mongo_id(p)
-
-        prediction = predict_using_model(
-            platform=p.get("source") or p.get("competitor") or "Unknown",
-            category=p.get("category", "Unknown"),
-            weight=p.get("weight", 0.2),
-            product_name=p.get("name")
-        )
-
-        out.append({
-            "_id": p["_id"],
-            "product_name": p.get("name"),
-            "competitor_price": p.get("price") or p.get("current_price"),
-            "recommended_price": prediction,
-            "platform": p.get("source") or p.get("competitor") or "Unknown",
-            "category": p.get("category", "Unknown"),
-        })
-
-    return {"predictions": out}
+# REMOVED CONFLICTING @router.get("/predictions") ROUTE.
+# This ensures that routes/admin_predictions.py can handle the /admin/predictions call
+# to show catalog product predictions without collision.

@@ -63,15 +63,17 @@ export default function AdminDashboard() {
 
   // Fetch scraped competitor pricing
   const fetchScraped = () => {
+    // Note: The /admin/scrape/results is defined in routes/admin.py
     axios.get(`${API}/admin/scrape/results`, { headers })
       .then(res => {
-        const items = res.data?.competitors || [];
+        // The endpoint returns an array directly, not an object with a 'competitors' key
+        const items = res.data || []; 
         setScraped(Array.isArray(items) ? items : []);
       })
       .catch(handleAuthError);
   };
 
-  // Fetch predictions
+  // Fetch predictions for your catalog products
   const fetchPredictions = () => {
     axios.get(`${API}/admin/predictions`, { headers })
       .then(res => {
@@ -191,9 +193,10 @@ export default function AdminDashboard() {
                 <TableBody>
                   {scraped.map((s, i) => (
                     <TableRow key={i}>
-                      <TableCell>{s.product_name || s.name || s.product || "-"}</TableCell>
-                      <TableCell>₹{s.price || s.current_price || "-"}</TableCell>
-                      <TableCell>{s.competitor || s.platform || s.source || "—"}</TableCell>
+                      {/* CORRECTED LOGIC: Use 'name' and 'price' as returned by /scrape/results */}
+                      <TableCell>{s.name || "-"}</TableCell> 
+                      <TableCell>₹{s.price ?? "-"}</TableCell> 
+                      <TableCell>{s.source || "—"}</TableCell> 
                     </TableRow>
                   ))}
                 </TableBody>
@@ -202,20 +205,30 @@ export default function AdminDashboard() {
 
             <Paper sx={{ p: 2 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography variant="h6">Predicted Recommended Prices</Typography>
+                <Typography variant="h6">Predicted Prices for Your Products</Typography>
                 <Button size="small" onClick={fetchPredictions}>Reload</Button>
               </Box>
               <Table size="small">
                 <TableHead>
-                  <TableRow><TableCell>Product</TableCell><TableCell>Competitor Price</TableCell><TableCell>Recommended</TableCell><TableCell>Platform</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell>Product</TableCell>
+                    <TableCell>Base Price</TableCell>
+                    <TableCell>Predicted Price</TableCell>
+                  </TableRow>
                 </TableHead>
                 <TableBody>
                   {predictions.map((pr, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={pr.product_id || i}>
                       <TableCell>{pr.product_name}</TableCell>
-                      <TableCell>₹{pr.competitor_price}</TableCell>
-                      <TableCell>₹{pr.recommended_price}</TableCell>
-                      <TableCell>{pr.platform}</TableCell>
+                      <TableCell>₹{pr.base_price ?? "—"}</TableCell>
+                      <TableCell>
+                        <Box sx={{ 
+                           fontWeight: 700, 
+                           color: pr.predicted_price > 0 && pr.predicted_price > pr.base_price ? 'lightgreen' : (pr.predicted_price > 0 && pr.predicted_price < pr.base_price ? 'pink' : 'inherit')
+                        }}>
+                           {pr.predicted_price > 0 ? `₹${pr.predicted_price}` : "N/A"} 
+                        </Box>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
