@@ -61,12 +61,12 @@ export default function AdminDashboard() {
       .catch(handleAuthError);
   };
 
-  // Fetch scraped competitor pricing
+  // Fetch scraped competitor pricing - CORRECTED FETCH LOGIC
   const fetchScraped = () => {
-    // Note: The /admin/scrape/results is defined in routes/admin.py
+    // Calls /admin/scrape/results from the updated routes/scrape.py
     axios.get(`${API}/admin/scrape/results`, { headers })
       .then(res => {
-        // The endpoint returns an array directly, not an object with a 'competitors' key
+        // Backend returns the array directly (res.data)
         const items = res.data || []; 
         setScraped(Array.isArray(items) ? items : []);
       })
@@ -92,12 +92,13 @@ export default function AdminDashboard() {
     setScrapeMsg("");
 
     try {
+      // Endpoint is POST /admin/scrape/{query}
       const res = await axios.post(`${API}/admin/scrape/${encodeURIComponent(scrapeQuery)}`, {}, { headers });
-      setScrapeMsg(`Scraped ${res.data.count} items`);
+      setScrapeMsg(res.data.message || `Scraped ${res.data.count} items`); // Use message from backend
       fetchScraped();
     } catch (err) {
       console.error(err);
-      setScrapeMsg("Failed to scrape. Check backend logs.");
+      setScrapeMsg(err.response?.data?.detail || "Failed to scrape. Check backend logs.");
     } finally {
       setLoadingScrape(false);
     }
@@ -192,11 +193,11 @@ export default function AdminDashboard() {
                 </TableHead>
                 <TableBody>
                   {scraped.map((s, i) => (
-                    <TableRow key={i}>
-                      {/* CORRECTED LOGIC: Use 'name' and 'price' as returned by /scrape/results */}
+                    <TableRow key={s._id || i}> {/* Use _id if available */}
+                      {/* Using name, basePrice, and source/competitor as returned by routes/admin.py or routes/scrape.py */}
                       <TableCell>{s.name || "-"}</TableCell> 
-                      <TableCell>₹{s.price ?? "-"}</TableCell> 
-                      <TableCell>{s.source || "—"}</TableCell> 
+                      <TableCell>₹{s.basePrice ?? s.price ?? "-"}</TableCell> 
+                      <TableCell>{s.source || s.competitor || "—"}</TableCell> 
                     </TableRow>
                   ))}
                 </TableBody>
